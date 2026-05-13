@@ -17,10 +17,10 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Input";
 import { monthGrid, weekRange, prettyMonth, toDateString } from "@/lib/date";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Plus, Move } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Move, Check, X } from "lucide-react";
 import { ScheduleDialog } from "@/components/ScheduleDialog";
 import { MoveSessionDialog } from "@/components/MoveSessionDialog";
-import { moveSession } from "@/db/queries";
+import { moveSession, finishSession, skipSession } from "@/db/queries";
 import type { WorkoutSession } from "@/db/schema";
 
 type View = "month" | "week";
@@ -241,6 +241,15 @@ function DayDetail({
         <ul className="space-y-1">
           {sessions.map((s) => {
             const movable = s.status !== "done" && s.status !== "modified";
+            const isPlanned = s.status === "planned";
+            const onMarkDone = async () => {
+              if (!confirm("Mark as done?")) return;
+              await finishSession(s.id, false);
+            };
+            const onMarkSkip = async () => {
+              if (!confirm("Mark as skipped?")) return;
+              await skipSession(s.id);
+            };
             return (
               <li key={s.id}>
                 <div
@@ -264,6 +273,16 @@ function DayDetail({
                   )}>
                     {s.status.replace("_", " ")}
                   </span>
+                  {isPlanned && (
+                    <>
+                      <Button size="sm" variant="ghost" onClick={onMarkDone} aria-label="Mark done" title="Mark done">
+                        <Check size={14} />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={onMarkSkip} aria-label="Skip" title="Skip">
+                        <X size={14} />
+                      </Button>
+                    </>
+                  )}
                   {movable && (
                     <Button
                       size="sm"

@@ -8,13 +8,18 @@ import { Card, CardHeader, EmptyState, Stat } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { todayLocal, weekRange, prettyDate, fromDateString, toDateString } from "@/lib/date";
 import { computeVolume, formatDuration } from "@/lib/utils";
-import { Play, Plus, RotateCcw } from "lucide-react";
+import { Play, Plus, RotateCcw, Check, X } from "lucide-react";
 import { HomeBodyMetric } from "@/components/HomeBodyMetric";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { DailyNoteCard } from "@/components/DailyNoteCard";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { findRepeatableLastWorkout, cloneSessionToDate } from "@/db/queries";
+import {
+  findRepeatableLastWorkout,
+  cloneSessionToDate,
+  finishSession,
+  skipSession,
+} from "@/db/queries";
 import type { WorkoutSession } from "@/db/schema";
 
 export default function TodayPage() {
@@ -81,25 +86,7 @@ export default function TodayPage() {
         {todaySessions && todaySessions.length > 0 ? (
           <div className="space-y-2">
             {todaySessions.map((s) => (
-              <Card key={s.id} className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase text-subtle">{s.kind}</div>
-                  <div className="font-medium">{s.name}</div>
-                  <div className="text-xs text-subtle capitalize">{s.status.replace("_", " ")}</div>
-                </div>
-                {s.status === "planned" || s.status === "in_progress" ? (
-                  <Link href={`/workout/${s.id}`}>
-                    <Button>
-                      <Play size={16} />
-                      {s.status === "in_progress" ? "Resume" : "Start"}
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link href={`/workout/${s.id}`}>
-                    <Button variant="secondary">View</Button>
-                  </Link>
-                )}
-              </Card>
+              <SessionRow key={s.id} session={s} />
             ))}
           </div>
         ) : (
@@ -124,6 +111,59 @@ export default function TodayPage() {
 
       <HomeBodyMetric />
     </div>
+  );
+}
+
+/**
+ * Today-screen row for a single session. Surfaces:
+ * - Main CTA (Start / Resume / View)
+ * - Quick "Mark done" + "Skip" for planned sessions, so you don't have to open
+ *   the workout page just to log "yes, I did it" / "no, I didn't".
+ */
+function SessionRow({ session: s }: { session: WorkoutSession }) {
+  const isActionable = s.status === "planned" || s.status === "in_progress";
+
+  const onMarkDone = async () => {
+    if (!confirm("Mark this session as done?")) return;
+    await finishSession(s.id, false);
+  };
+  const onSkip = async () => {
+    if (!confirm("Mark this session as skipped?")) return;
+    await skipSession(s.id);
+  };
+
+  return (
+    <Card className="flex items-center justify-between gap-2">
+      <div className="min-w-0">
+        <div className="text-xs uppercase text-subtle">{s.kind}</div>
+        <div className="font-medium truncate">{s.name}</div>
+        <div className="text-xs text-subtle capitalize">{s.status.replace("_", " ")}</div>
+      </div>
+      <div className="flex flex-col items-end gap-1">
+        {isActionable ? (
+          <Link href={`/workout/${s.id}`}>
+            <Button>
+              <Play size={16} />
+              {s.status === "in_progress" ? "Resume" : "Start"}
+            </Button>
+          </Link>
+        ) : (
+          <Link href={`/workout/${s.id}`}>
+            <Button variant="secondary">View</Button>
+          </Link>
+        )}
+        {s.status === "planned" && (
+          <div className="flex gap-1">
+            <Button size="sm" variant="ghost" onClick={onMarkDone}>
+              <Check size={12} /> Done
+            </Button>
+            <Button size="sm" variant="ghost" onClick={onSkip}>
+              <X size={12} /> Skip
+            </Button>
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
 

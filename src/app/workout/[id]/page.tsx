@@ -19,7 +19,7 @@ import {
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Play, Check, X, Trash2, Plus, Flame, Trophy, MessageSquare, TrendingUp } from "lucide-react";
+import { Play, Check, X, Trash2, Plus, Flame, Trophy, MessageSquare, TrendingUp, Pencil } from "lucide-react";
 import { ExercisePicker } from "@/components/ExercisePicker";
 import { cn, computeVolume, formatDuration } from "@/lib/utils";
 import { unlockAudio } from "@/lib/audio";
@@ -45,6 +45,11 @@ export default function WorkoutPage({ params }: { params: Promise<{ id: string }
   // Rest timer is owned at the page level so it survives between exercise
   // cards. `null` means inactive.
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
+
+  // "Edit mode" — when the session is already done/modified, the user can
+  // toggle this on to re-enable editing of sets, planned exercises, etc.
+  // Useful for fixing up reality vs. plan after the fact.
+  const [editMode, setEditMode] = useState(false);
 
   const startRest = useCallback((sec: number) => {
     if (!sec || sec <= 0) return;
@@ -96,13 +101,32 @@ export default function WorkoutPage({ params }: { params: Promise<{ id: string }
         </div>
         <div className="flex flex-col gap-2">
           {session.status === "planned" && (
-            <Button onClick={onStart}><Play size={14} /> Start</Button>
+            <>
+              <Button onClick={onStart}><Play size={14} /> Start</Button>
+              <Button
+                variant="secondary"
+                onClick={() => onFinish(false)}
+                title="Mark as done without entering execution mode"
+              >
+                <Check size={14} /> Mark done
+              </Button>
+            </>
           )}
           {inProgress && (
             <>
               <Button onClick={() => onFinish(false)}><Check size={14} /> Finish</Button>
               <Button variant="secondary" onClick={() => onFinish(true)}>Finish (modified)</Button>
             </>
+          )}
+          {finished && !editMode && (
+            <Button variant="secondary" onClick={() => setEditMode(true)}>
+              <Pencil size={14} /> Edit
+            </Button>
+          )}
+          {finished && editMode && (
+            <Button onClick={() => setEditMode(false)}>
+              <Check size={14} /> Done editing
+            </Button>
           )}
           {!finished && (
             <Button variant="ghost" onClick={onSkip}><X size={14} /> Skip</Button>
@@ -113,7 +137,7 @@ export default function WorkoutPage({ params }: { params: Promise<{ id: string }
       {isStrength ? (
         <StrengthBody
           session={session}
-          canEdit={inProgress || session.status === "planned"}
+          canEdit={inProgress || session.status === "planned" || editMode}
           onSetLogged={startRest}
         />
       ) : (
