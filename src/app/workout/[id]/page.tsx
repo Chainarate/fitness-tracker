@@ -52,6 +52,12 @@ export default function WorkoutPage({ params }: { params: Promise<{ id: string }
   }, []);
 
   if (!session) return <div className="text-subtle">Loading…</div>;
+  // Session was deleted (locally or on another device). Bounce out so the user
+  // doesn't operate on a row that's about to disappear from listings anyway.
+  if (session.deletedAt) {
+    router.replace("/calendar");
+    return <div className="text-subtle">Deleted — redirecting…</div>;
+  }
 
   const isStrength = session.kind === "strength";
   const inProgress = session.status === "in_progress";

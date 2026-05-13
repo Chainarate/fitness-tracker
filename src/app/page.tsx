@@ -35,12 +35,18 @@ export default function TodayPage() {
       db.workoutSessions
         .where("date")
         .between(startStr, endStr, true, true)
+        .filter((s) => !s.deletedAt)
         .toArray(),
     [startStr, endStr],
   );
 
   const todaySessions = useLiveQuery(
-    () => db.workoutSessions.where("date").equals(today).toArray(),
+    () =>
+      db.workoutSessions
+        .where("date")
+        .equals(today)
+        .filter((s) => !s.deletedAt)
+        .toArray(),
     [today],
   );
 

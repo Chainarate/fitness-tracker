@@ -93,7 +93,9 @@ export default function TemplateEditor({ initial, onSaved, onDeleted }: Props) {
   const onDelete = async () => {
     if (!initial) return;
     if (!confirm("Delete this template?")) return;
-    await db.templates.delete(initial.id);
+    const now = new Date().toISOString();
+    // Soft delete — see schema.ts comment on `deletedAt`.
+    await db.templates.update(initial.id, { deletedAt: now, updatedAt: now });
     onDeleted?.();
   };
 

@@ -23,7 +23,10 @@ export function ScheduleDialog({
   date: string;
 }) {
   const router = useRouter();
-  const templates = useLiveQuery(() => db.templates.orderBy("name").toArray(), []);
+  const templates = useLiveQuery(
+    () => db.templates.filter((t) => !t.deletedAt).sortBy("name"),
+    [],
+  );
   const [kind, setKind] = useState<"strength" | "cardio">("strength");
   const [templateId, setTemplateId] = useState<string>("");
 

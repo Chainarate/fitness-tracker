@@ -61,6 +61,7 @@ async function lastHistory(
   const out: HistoryRow[] = [];
   for (const s of sessions) {
     if (s.id === excludeSessionId) continue;
+    if (s.deletedAt) continue;
     const working = (s.sets ?? []).filter((x) => x.exerciseId === exerciseId && !x.isWarmup);
     if (working.length === 0) continue;
     const plan = s.plannedExercises?.find((p) => p.exerciseId === exerciseId);

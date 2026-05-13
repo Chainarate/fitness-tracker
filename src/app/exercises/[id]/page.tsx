@@ -14,7 +14,12 @@ export default function ExerciseDetailPage({ params }: { params: Promise<{ id: s
   const exercise = useLiveQuery(() => db.exercises.get(id), [id]);
 
   const sessions = useLiveQuery(
-    () => db.workoutSessions.where("status").anyOf(["done", "modified"]).toArray(),
+    () =>
+      db.workoutSessions
+        .where("status")
+        .anyOf(["done", "modified"])
+        .filter((s) => !s.deletedAt)
+        .toArray(),
     [],
   );
 

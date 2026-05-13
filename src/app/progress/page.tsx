@@ -21,7 +21,12 @@ import { AlertTriangle } from "lucide-react";
  */
 export default function ProgressPage() {
   const sessions = useLiveQuery(
-    () => db.workoutSessions.where("status").anyOf(["done", "modified"]).toArray(),
+    () =>
+      db.workoutSessions
+        .where("status")
+        .anyOf(["done", "modified"])
+        .filter((s) => !s.deletedAt)
+        .toArray(),
     [],
   );
   const exercises = useLiveQuery(() => db.exercises.toArray(), []);

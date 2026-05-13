@@ -86,6 +86,9 @@ export interface Template {
   description?: string;
   type: "strength";
   exercises: TemplateExercise[];
+  /** Soft-delete tombstone — when set, the row is hidden from UI but kept
+   *  in Dexie so the sync engine can propagate the deletion to other devices. */
+  deletedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -147,6 +150,9 @@ export interface WorkoutSession {
   completedAt?: string;
   durationSec?: number;
   notes?: string;
+  /** Soft-delete tombstone — set instead of hard-deleting so the deletion
+   *  propagates to other devices via sync. UI filters out rows with this set. */
+  deletedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -166,6 +172,7 @@ export interface BodyMetric {
   restingHr?: number;
   notes?: string;
   source: MetricSource;
+  deletedAt?: string;
   createdAt: string;
 }
 
@@ -190,6 +197,7 @@ export interface BodyMeasurement {
   rightCalfCm?: number;
   notes?: string;
   source: MetricSource;
+  deletedAt?: string;
   createdAt: string;
 }
 
@@ -205,6 +213,7 @@ export interface DailyNote {
   sleepQuality?: 1 | 2 | 3 | 4 | 5;
   tags?: string[];                 // e.g. ["sick", "deload", "vacation"]
   notes?: string;
+  deletedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

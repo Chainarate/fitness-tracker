@@ -23,6 +23,7 @@ export async function loadPRBenchmarks(
   const sessions = await db.workoutSessions
     .where("status")
     .anyOf(["done", "modified"])
+    .filter((s) => !s.deletedAt)
     .toArray();
 
   let heaviestWeight = 0;

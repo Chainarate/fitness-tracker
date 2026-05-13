@@ -29,6 +29,7 @@ export async function findRepeatableLastWorkout(today: string): Promise<WorkoutS
     .reverse()
     .sortBy("date");
   for (const s of sessions) {
+    if (s.deletedAt) continue;
     if (s.kind !== "strength") continue;
     if (s.date >= today) continue;
     const d = new Date(s.date);
@@ -156,8 +157,13 @@ export async function moveSession(id: string, newDate: string): Promise<void> {
   });
 }
 
+/**
+ * Soft-delete a session. Sets `deletedAt` + bumps `updatedAt` so the sync
+ * engine propagates the tombstone. Read sites filter out tombstoned rows.
+ */
 export async function deleteSession(id: string): Promise<void> {
-  await db.workoutSessions.delete(id);
+  const now = new Date().toISOString();
+  await db.workoutSessions.update(id, { deletedAt: now, updatedAt: now });
 }
 
 /**
@@ -313,6 +319,7 @@ export async function previousPerformance(
 
   const results: Array<{ session: WorkoutSession; sets: LoggedSet[] }> = [];
   for (const session of sessions) {
+    if (session.deletedAt) continue;
     const sets = (session.sets ?? []).filter((s) => s.exerciseId === exerciseId);
     if (sets.length > 0) {
       results.push({ session, sets });

@@ -12,6 +12,10 @@ export default function EditTemplatePage({ params }: { params: Promise<{ id: str
   const template = useLiveQuery(() => db.templates.get(id), [id]);
 
   if (!template) return <div className="text-subtle">Loading…</div>;
+  if (template.deletedAt) {
+    router.replace("/templates");
+    return <div className="text-subtle">Deleted — redirecting…</div>;
+  }
 
   return (
     <div className="space-y-4">

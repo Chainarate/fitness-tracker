@@ -52,7 +52,12 @@ export default function CalendarPage() {
   const rangeEnd = toDateString(days[days.length - 1]);
 
   const sessions = useLiveQuery(
-    () => db.workoutSessions.where("date").between(rangeStart, rangeEnd, true, true).toArray(),
+    () =>
+      db.workoutSessions
+        .where("date")
+        .between(rangeStart, rangeEnd, true, true)
+        .filter((s) => !s.deletedAt)
+        .toArray(),
     [rangeStart, rangeEnd],
   );
 

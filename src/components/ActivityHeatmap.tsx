@@ -28,7 +28,12 @@ function intensity(count: number, inFuture: boolean): string {
 export function ActivityHeatmap({ weeks = 12 }: { weeks?: number }) {
   const settings = useLiveQuery(() => db.settings.get("singleton"), []);
   const sessions = useLiveQuery(
-    () => db.workoutSessions.where("status").anyOf(["done", "modified"]).toArray(),
+    () =>
+      db.workoutSessions
+        .where("status")
+        .anyOf(["done", "modified"])
+        .filter((s) => !s.deletedAt)
+        .toArray(),
     [],
   );
 

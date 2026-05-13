@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { Plus } from "lucide-react";
 
 export default function TemplatesPage() {
-  const templates = useLiveQuery(() => db.templates.orderBy("name").toArray(), []);
+  const templates = useLiveQuery(
+    () => db.templates.filter((t) => !t.deletedAt).sortBy("name"),
+    [],
+  );
 
   return (
     <div className="space-y-4">
